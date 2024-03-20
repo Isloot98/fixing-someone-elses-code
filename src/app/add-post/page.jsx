@@ -1,9 +1,9 @@
 import { auth } from "@/auth";
-import { db } from "@/db";
+import { sql } from "@vercel/postgres";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { LoginButton } from "@/components/LoginButton";
-import { LogoutButton } from "@/components/LogoutButton";
+// import { LoginButton } from "@/components/LoginButton";
+// import { LogoutButton } from "@/components/LogoutButton";
 
 export default async function Home() {
   const session = await auth();
@@ -12,32 +12,36 @@ export default async function Home() {
     "use server";
     const content = formData.get("content");
     const title = formData.get("title");
-    const userId = session?.user?.id;
+    const userId = formData.get("userId");
+
+    // const userId = session?.user?.id;
     if (!userId) {
       throw new Error("You need to login");
     }
 
-    await db.query(
-      "INSERT INTO posts (title, body, user_id) VALUES ($1, $2, $3)",
-      [title, content, userId]
-    );
-
-    revalidatePath("/");
+    await sql` INSERT INTO diditposts (title, body, user_id) VALUES (${title}, ${content}, ${userId})`,
+      revalidatePath("/");
     redirect("/");
   }
 
-  if (!session) {
-    return (
-      <div className="max-w-screen-lg mx-auto p-4 mt-10">
-        You need to login to create a post <LoginButton />
-      </div>
-    );
-  }
+  // if (!session) {
+  //   return (
+  //     <div className="max-w-screen-lg mx-auto p-4 mt-10">
+  //       You need to login to create a post <LoginButton />
+  //     </div>
+  //   );
+  // }
 
   return (
     <div className="max-w-screen-lg mx-auto p-4 bg-zinc-800 mt-10 rounded-xl">
       <h2 className="text-3xl mb-4">Add a new post</h2>
       <form action={savePost} className="flex flex-col space-y-4">
+        <input
+          type="text"
+          name="userId"
+          placeholder="UserId"
+          className="text-black px-3 py-2 rounded"
+        />
         <input
           type="text"
           name="title"

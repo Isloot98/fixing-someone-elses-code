@@ -1,17 +1,17 @@
-"use server";
+// "use server";
 
-import { auth } from "@/auth";
-import { db } from "@/db";
-import { revalidatePath } from "next/cache";
+// import { auth } from "@/auth";
+// import { sql } from "@vercel/postgres";
+// import { revalidatePath } from "next/cache";
 
-export async function saveComment({ postId, parentCommentId }, formData) {
-  const session = await auth();
+// export async function saveComment({ postId, parentCommentId }, formData) {
+//   const session = await auth();
 
-  await db.query(
-    "INSERT INTO comments (user_id, post_id, parent_comment_id, body) VALUES ($1, $2, $3, $4)",
-    [session.user.id, postId, parentCommentId, formData.get("comment")]
-  );
+//   await sql`INSERT INTO comments (user_id, post_id, parent_comment_id, body) VALUES (${
+//     session.user.id
+//   }, ${postId}, ${parentCommentId}, ${formData.get("comment")})`,
+//     // [session.user.id, postId, parentCommentId, formData.get("comment")];
 
-  revalidatePath(`/post/${postId}`);
-  return { success: true };
-}
+//     revalidatePath(`/post/${postId}`);
+//   return { success: true };
+// }

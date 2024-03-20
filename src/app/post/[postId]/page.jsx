@@ -1,5 +1,5 @@
-import { CommentForm } from "@/components/CommentForm";
-import { CommentList } from "@/components/CommentList";
+// import { CommentForm } from "@/components/CommentForm";
+// import { CommentList } from "@/components/CommentList";
 import { Vote } from "@/components/Vote";
 import { sql } from "@vercel/postgres";
 
