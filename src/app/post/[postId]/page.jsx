@@ -1,42 +1,37 @@
 import { CommentForm } from "@/components/CommentForm";
 import { CommentList } from "@/components/CommentList";
 import { Vote } from "@/components/Vote";
-import { db } from "@/db";
+import { sql } from "@vercel/postgres";
 
 export default async function SinglePostPage({ params }) {
   const postId = params.postId;
+  console.log(postId);
+  const { rows: posts } =
+    await sql`SELECT diditposts.id, diditposts.title, diditposts.body, diditposts.created_at, diditusers.name, 
+    COALESCE(SUM(diditvotes.vote), 0) AS vote_total
+    FROM diditposts
+    JOIN diditusers ON diditposts.user_id = diditusers.id
+    LEFT JOIN diditvotes ON diditvotes.post_id = diditposts.id
+    WHERE diditposts.id = ${postId}
+    GROUP BY diditposts.id, diditusers.name
+    LIMIT 1`;
+  console.log(posts);
 
-  const { rows: posts } = await db.query(
-    `SELECT posts.id, posts.title, posts.body, posts.created_at, users.name, 
-    COALESCE(SUM(votes.vote), 0) AS vote_total
-    FROM posts
-    JOIN users ON posts.user_id = users.id
-    LEFT JOIN votes ON votes.post_id = posts.id
-    WHERE posts.id = $1
-    GROUP BY posts.id, users.name
-    LIMIT 1;`,
-    [postId]
-  );
-  const post = posts[0];
-
-  const { rows: votes } = await db.query(
-    `SELECT *, users.name from votes
-     JOIN users on votes.user_id = users.id`
-  );
-
-  return (
+  return posts && posts.length > 0 ? (
     <div className="max-w-screen-lg mx-auto pt-4 pr-4">
       <div className="flex space-x-6">
-        <Vote postId={post.id} votes={post.vote_total} />
+        <Vote postId={posts[0].id} votes={posts[0].vote_total} />
         <div className="">
-          <h1 className="text-2xl">{post.title}</h1>
-          <p className="text-zinc-400 mb-4">Posted by {post.name}</p>
+          <h1 className="text-2xl">{posts[0].title}</h1>
+          <p className="text-zinc-400 mb-4">Posted by {posts[0].name}</p>
         </div>
       </div>
-      <main className="whitespace-pre-wrap m-4">{post.body}</main>
+      <main className="whitespace-pre-wrap m-4">{posts[0].body}</main>
 
-      <CommentForm postId={post.id} />
-      <CommentList postId={post.id} />
+      {/* <CommentForm postId={posts[0].id} />
+      <CommentList postId={posts[0].id} /> */}
     </div>
+  ) : (
+    <div>No post found</div>
   );
 }
